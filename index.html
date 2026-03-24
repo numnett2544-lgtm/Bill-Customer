@@ -940,22 +940,22 @@ function closeLogoM(e){
 function handleLogoUpload(e){ handleLogoFile(e); }
 
 function buildReceipt({b,customer,lineId,team,country,note,billNo,dateStr,act,t,iimgs}){
-  // filter out empty rows (no code AND price=0)
   const validAct=act.filter(x=>x.code||x.price>0);
   const rows=validAct.map((x,i)=>{
-    const img=(iimgs&&iimgs[x.id])?`<img src="${iimgs[x.id]}" style="width:46px;height:46px;object-fit:cover;border-radius:8px;border:1px solid #f0e8ec;margin-right:10px;flex-shrink:0">`:'';
+    // support both iimgs[id] map AND x.imgSrc stored on item directly
+    const imgSrc=(iimgs&&iimgs[x.id])||x.imgSrc||null;
+    const img=imgSrc?`<img src="${imgSrc}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #f0e8ec;margin-right:10px;flex-shrink:0">`:'';
     return`<tr><td style="padding:8px 0;border-bottom:1px solid #faf0f3;vertical-align:middle">
       <div style="display:flex;align-items:center">${img}<div>
         <div style="font-weight:700;color:${b.cd};font-size:13px;font-family:'Quicksand',sans-serif">${x.code||'—'}</div>
-        ${x.name?`<div style="font-size:11px;color:#aaa;font-family:'Quicksand',sans-serif">${x.name}</div>`:''}
+        ${x.name?`<div style="font-size:11px;color:#aaa;font-family:'Quicksand',sans-serif">${x.name||x.size||''}</div>`:''}
       </div></div></td>
-      <td style="text-align:center;padding:8px 6px;border-bottom:1px solid #faf0f3;font-size:13px;font-family:'Quicksand',sans-serif">${x.qty}</td>
-      <td style="text-align:right;padding:8px 0;border-bottom:1px solid #faf0f3;font-size:13px;font-family:'Quicksand',sans-serif">${x.price.toLocaleString()}</td>
-      <td style="text-align:right;padding:8px 0 8px 6px;border-bottom:1px solid #faf0f3;font-size:13px;font-weight:700;font-family:'Quicksand',sans-serif">${(x.qty*x.price).toLocaleString()}</td>
+      <td style="text-align:center;padding:8px 6px;border-bottom:1px solid #faf0f3;font-size:13px;font-family:'Quicksand',sans-serif">${x.qty||1}</td>
+      <td style="text-align:right;padding:8px 0;border-bottom:1px solid #faf0f3;font-size:13px;font-family:'Quicksand',sans-serif">${(x.price||0).toLocaleString()}</td>
+      <td style="text-align:right;padding:8px 0 8px 6px;border-bottom:1px solid #faf0f3;font-size:13px;font-weight:700;font-family:'Quicksand',sans-serif">${((x.qty||1)*(x.price||0)).toLocaleString()}</td>
     </tr>`;
   }).join('');
   const discLabel=t.discType==='pct'?`Discount ${t.dv}%`:'Discount';
-  // logo: use URL/uploaded logo if exists, else emoji
   const logoData=getBrandLogo(b.id);
   const logoHtml=logoData
     ?`<img src="${logoData}" style="width:64px;height:64px;object-fit:contain;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto">`
@@ -1121,8 +1121,10 @@ function savePO(){
   if(!cust){toast('⚠️ ใส่ชื่อลูกค้าก่อนนะคะ','err');return;}
   const validItems=poItems.filter(x=>x.code.trim()||x.price>0);
   if(!validItems.length){toast('⚠️ เพิ่มรายการสินค้าอย่างน้อย 1 รายการ','err');return;}
-  // attach images to items
-  const itemsWithImg=validItems.map(it=>({...it,imgData:poItemImgs[it.id]||null}));
+
+  // attach images to items (imgSrc stored on item itself)
+  const itemsWithImg=validItems.map(it=>({...it,imgSrc:poItemImgs[it.id]||null}));
+
   const po={id:Date.now(),poNo:genPNo(),billType:pobt,
     brandId:brand?.id,brandName:brand?.name,
     date:new Date().toISOString().split('T')[0],
@@ -1134,9 +1136,33 @@ function savePO(){
     eta:document.getElementById('p-eta').value,
     note:document.getElementById('p-note').value,
     imgData:poImg,status:'Pending',statusDate:''};
-  pos.unshift(po);pc++;save();closePOM();
-  toast('✅ บันทึก '+po.poNo+' · '+validItems.length+' รายการ แล้ว!','ok');
-  syncPreorderToDrive(po); // sync to Google Drive
+
+  pos.unshift(po);pc++;save();
+
+  // ── รวมบิล: เพิ่มรายการเข้าบิลปกติที่กำลังกรอกอยู่ทันที ──
+  if(pobt==='merge'){
+    itemsWithImg.forEach(it=>{
+      const newId=++iid;
+      const newItem={id:newId,code:it.code||'',name:it.size||'',qty:it.qty||1,price:it.price||0,cancelled:false};
+      items.push(newItem);
+      // copy image over to bill iimgs
+      if(it.imgSrc) iimgs[newId]=it.imgSrc;
+    });
+    renderItems(); calc();
+    // prefill customer info ถ้ายังว่าง
+    const custField=document.getElementById('b-cust');
+    if(!custField.value) custField.value=cust;
+    const lineField=document.getElementById('b-line');
+    if(!lineField.value&&po.lineId) lineField.value=po.lineId;
+    closePOM();
+    toast('✅ เพิ่ม '+validItems.length+' รายการเข้าบิลแล้ว!','ok');
+    goPage('bill',0); // กลับไปหน้ากรอกบิล
+  } else {
+    closePOM();
+    toast('✅ บันทึก '+po.poNo+' · '+validItems.length+' รายการ แล้ว!','ok');
+  }
+
+  syncPreorderToDrive(po);
   renderPOs();
 }
 
@@ -1149,12 +1175,13 @@ function openBillDetail(billId){
   const b=BRANDS.find(x=>x.id===bill.brandId)||BRANDS[0];
   const act=bill.items.filter(x=>!x.cancelled);
   const t={sub:bill.sub,ship:bill.ship,disc:bill.disc,dv:bill.dv,discType:bill.discType||'baht',grand:bill.grand};
+  // iimgs: support both old map format and new imgSrc-on-item format
+  const iimgsMap=bill.iimgs||{};
   const html=buildReceipt({b,customer:bill.customer,lineId:bill.lineId,team:bill.team,
     country:bill.country,note:bill.note,billNo:bill.billNo,
-    dateStr:fmtDateEng(new Date(bill.date+'T00:00:00')),act,t,iimgs:bill.iimgs||{}});
+    dateStr:fmtDateEng(new Date(bill.date+'T00:00:00')),act,t,iimgs:iimgsMap});
   document.getElementById('bdet-title').textContent=bill.billNo+' · '+bill.customer;
   document.getElementById('bdet-content').innerHTML=`<div style="background:var(--cream);border-radius:var(--rsm);border:1.5px solid var(--border);max-height:55vh;overflow-y:auto;padding:8px">${html}</div>`;
-  // put in rf for export
   document.getElementById('rf').innerHTML=html;
   document.getElementById('bdet-modal').classList.add('open');
 }
