@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Customer Bill · Pastel</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --p1:#c8ecd4;--p1d:#6dbb8a;--p1t:#1a4a2e;--p1bg:#f0faf4;
+  --p2:#c8dff9;--p2d:#89aee8;--p2t:#1e3a6e;--p2bg:#f5f9ff;
+  --p3:#dddde0;--p3d:#8e8e96;--p3t:#2e2e38;--p3bg:#f5f5f7;
+  --lav:#ede8fd;--lavd:#c4b8f4;--lavt:#4a3a7a;
+  --cream:#fffbf5;--bg:#fef9fb;--white:#ffffff;
+  --border:#f0e8ec;--text:#3d2a33;--text2:#9a8890;
+  --shadow:0 2px 16px rgba(200,130,150,.1);
+  --shadow-sm:0 1px 8px rgba(200,130,150,.08);
+  --r:18px;--rsm:12px;--rxs:8px;
+  --safe-bot:env(safe-area-inset-bottom,0px);
+  --bd:var(--p1d);--bt:var(--p1t);--bb:var(--p1);--bbg:var(--p1bg);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;padding-bottom:calc(76px + var(--safe-bot))}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;padding:24px}
+#splash h1{font-family:'Quicksand',sans-serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:4px}
+#splash .tagline{font-size:13px;color:var(--text2);margin-bottom:32px}
+.brand-card{width:100%;max-width:360px;border-radius:var(--r);padding:18px 20px;margin-bottom:12px;cursor:pointer;border:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow)}
+.brand-card:active{transform:scale(.98)}
+.bc1{background:var(--p1bg);border-color:var(--p1d)}.bc2{background:var(--p2bg);border-color:var(--p2d)}.bc3{background:var(--p3bg);border-color:var(--p3d)}
+.bdot{width:56px;height:56px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;position:relative}
+.bc1 .bdot{background:var(--p1)}.bc2 .bdot{background:var(--p2)}.bc3 .bdot{background:var(--p3)}
+.bdot img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.bdot .upload-hint{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:700;opacity:.8;line-height:1.2}
+.bname{font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700}.bsub{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1.5px solid var(--border);display:flex;padding-bottom:var(--safe-bot);z-index:100;box-shadow:0 -4px 20px rgba(200,130,150,.08)}
+.ntab{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;color:var(--text2);font-size:11px;font-weight:600;background:none;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;transition:color .15s}
+.ntab .ni{font-size:21px;margin-bottom:2px;line-height:1}
+.ntab.on{color:var(--bd)}
+
+/* TOPBAR */
+.topbar{background:var(--bb);color:var(--bt);padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h1{font-family:'Quicksand',sans-serif;font-size:16px;font-weight:700}
+.topbar .sub{font-size:11px;opacity:.75;margin-top:1px}
+.tbr{text-align:right}
+.tbtn{background:rgba(255,255,255,.35);border:none;border-radius:10px;padding:7px 13px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;color:var(--bt)}
+
+/* PAGES */
+.page{display:none;min-height:calc(100vh - 76px)}
+.page.on{display:block}
+.sec{padding:14px}
+
+/* CARD */
+.card{background:var(--white);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow-sm);border:1.5px solid var(--border)}
+.ch{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* FIELDS */
+.f{margin-bottom:10px}.f:last-child{margin-bottom:0}
+.f label{font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;letter-spacing:.3px}
+.f input,.f select,.f textarea{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--rxs);font-size:15px;font-family:'Sarabun',sans-serif;color:var(--text);background:var(--cream);appearance:none;-webkit-appearance:none;transition:border-color .15s,box-shadow .15s}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--bd);box-shadow:0 0 0 3px rgba(232,137,154,.15)}
+.f textarea{resize:none;min-height:60px}
+.fr{display:grid;gap:10px}.fr.c2{grid-template-columns:1fr 1fr}.fr.c3{grid-template-columns:1fr 1fr 1fr}
+
+/* UPLOAD BOX */
+.upbox{border:2px dashed var(--border);border-radius:var(--rxs);background:var(--cream);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:border-color .15s;min-height:70px;padding:8px}
+.upbox:active{border-color:var(--bd)}
+.upbox .ui{font-size:22px;line-height:1}
+.upbox span{font-size:11px;color:var(--text2);text-align:center}
+.ithumb{position:relative;border-radius:var(--rxs);overflow:hidden}
+.ithumb img{width:100%;height:100%;object-fit:cover}
+.ithumb button{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ITEMS */
+.ilist{display:flex;flex-direction:column;gap:10px}
+.irow{background:var(--cream);border-radius:var(--rsm);padding:12px;border:1.5px solid var(--border);transition:opacity .15s}
+.irow.xx{opacity:.4;background:#fff0f3;border-color:#fcc}
+.igrid{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}
+.imain{display:flex;flex-direction:column;gap:6px}
+.itop{display:grid;grid-template-columns:80px 1fr;gap:6px}
+.ibot{display:grid;grid-template-columns:52px 1fr 76px;gap:6px;align-items:center}
+.ii{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--rxs);font-size:14px;font-family:'Sarabun',sans-serif;background:var(--white);color:var(--text)}
+.ii:focus{outline:none;border-color:var(--bd)}
+.ii.r{text-align:right}
+.ii::placeholder{color:#ccc}
+.itot{font-size:14px;font-weight:700;color:var(--bd);text-align:right;padding:8px 0}
+.ictrls{display:flex;flex-direction:column;align-items:center;gap:6px}
+.iimgbox{width:52px;height:52px;border-radius:var(--rxs);overflow:hidden;border:1.5px solid var(--border);background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
+.iimgbox img{width:100%;height:100%;object-fit:cover}
+.xbtn{width:28px;height:28px;border-radius:50%;background:var(--white);border:1.5px solid var(--border);color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.xbtn:active{background:#fff0f3;border-color:#fcc;color:#e85}
+
+/* ADD BTN */
+.addbtn{width:100%;padding:13px;background:var(--bbg);border:2px dashed var(--bd);border-radius:var(--rxs);color:var(--bd);font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;font-family:'Sarabun',sans-serif;transition:background .15s}
+.addbtn:active{background:var(--bb)}
+
+/* SUMMARY */
+.sbox{border-radius:var(--r);padding:16px;margin-bottom:12px;background:var(--bb);color:var(--bt)}
+.srow{display:flex;justify-content:space-between;padding:3px 0;font-size:14px}
+.stot{font-size:20px;font-weight:700;border-top:1px solid rgba(255,255,255,.35);padding-top:10px;margin-top:6px}
+
+/* BUTTONS */
+.btn{width:100%;padding:15px;border-radius:var(--r);font-size:16px;font-weight:700;cursor:pointer;border:none;font-family:'Sarabun',sans-serif;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s,opacity .1s}
+.btn:last-child{margin-bottom:0}
+.btn:active{transform:scale(.98);opacity:.9}
+.bs{background:var(--bd);color:#fff}
+.bo{background:transparent;color:var(--bd);border:2px solid var(--bd)}
+.bg{background:var(--cream);color:var(--text2);border:1.5px solid var(--border)}
+.bl{background:var(--lav);color:var(--lavt);border:1.5px solid var(--lavd)}
+
+/* DISC TOGGLE */
+.dw{display:flex;gap:6px;align-items:center}
+.dw input{flex:1}
+.dtog{display:flex;border-radius:var(--rxs);border:1.5px solid var(--border);overflow:hidden;flex-shrink:0}
+.dtog button{padding:9px 12px;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text2);transition:background .15s}
+.dtog button.on{background:var(--bd);color:#fff}
+
+/* PO CARD */
+.poc{background:var(--white);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm);border:1.5px solid var(--border);border-left:4px solid var(--bd)}
+.poc.sp{border-left-color:var(--p1d)}.poc.so{border-left-color:var(--p2d)}.poc.sr{border-left-color:var(--p3d)}.poc.ss{border-left-color:var(--lavd)}.poc.sc{border-left-color:var(--border);opacity:.6}
+.poh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.pono{font-size:12px;font-weight:700;color:var(--bd)}
+.poname{font-size:15px;font-weight:700;margin-top:2px}
+.podet{font-size:12px;color:var(--text2);margin-top:3px}
+.pof{display:flex;gap:8px;align-items:center;margin-top:10px}
+.ssel{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--rxs);font-size:13px;font-family:'Sarabun',sans-serif;background:var(--cream);color:var(--text);appearance:none}
+.cbtn{width:38px;height:38px;border-radius:50%;background:var(--bb);border:none;color:var(--bt);font-size:17px;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;flex-shrink:0}
+
+/* BADGE */
+.bdg{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.bdg-p{background:#fce4ec;color:#c2185b}.bdg-o{background:#e3f2fd;color:#1565c0}
+.bdg-r{background:#e8f5e9;color:#2e7d32}.bdg-s{background:#ede7f6;color:#512da8}
+.bdg-c{background:#f5f5f5;color:#757575}
+
+/* STATS */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sc{background:var(--white);border-radius:var(--rsm);padding:14px;text-align:center;box-shadow:var(--shadow-sm);border:1.5px solid var(--border)}
+.snum{font-size:24px;font-weight:700;font-family:'Quicksand',sans-serif}
+.slbl{font-size:11px;color:var(--text2);margin-top:3px}
+
+/* FILTER */
+.frow{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;scrollbar-width:none}
+.frow::-webkit-scrollbar{display:none}
+.fc{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--white);border:1.5px solid var(--border);color:var(--text2);cursor:pointer;white-space:nowrap;font-family:'Sarabun',sans-serif;flex-shrink:0;transition:all .15s}
+.fc.on{background:var(--bd);border-color:var(--bd);color:#fff}
+
+/* MODAL */
+.mover{position:fixed;inset:0;background:rgba(80,40,50,.35);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s}
+.mover.open{opacity:1;pointer-events:all}
+.modal{background:var(--white);border-radius:22px 22px 0 0;padding:20px 16px calc(32px + var(--safe-bot));width:100%;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.2,.64,1);max-height:92vh;overflow-y:auto}
+.mover.open .modal{transform:translateY(0)}
+.mhandle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.mtitle{font-family:'Quicksand',sans-serif;font-size:17px;font-weight:700;margin-bottom:16px;color:var(--text)}
+
+/* BILL MINI */
+.bm{background:var(--white);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm);border:1.5px solid var(--border)}
+.bno2{font-size:12px;font-weight:700;color:var(--bd)}.bname2{font-size:14px;font-weight:600;margin-top:2px}
+.bsub2{font-size:11px;color:var(--text2)}.bamt{font-size:15px;font-weight:700;color:var(--bd)}
+
+/* QUICK CHIPS */
+.qc{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.qchip{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--bbg);border:1.5px solid var(--bd);color:var(--bd);cursor:pointer;font-family:'Sarabun',sans-serif}
+.qchip:active{background:var(--bb)}
+
+/* TOAST */
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--text);color:var(--white);padding:12px 22px;border-radius:30px;font-size:13px;font-weight:600;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:92vw;box-shadow:0 4px 20px rgba(0,0,0,.18)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--p3d);color:var(--p3t)}.toast.err{background:var(--p1d);color:var(--p1t)}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty .big{font-size:40px;margin-bottom:10px}
+
+/* PO BILL TYPE */
+.btw{display:flex;gap:8px;margin-bottom:12px}
+.btbtn{flex:1;padding:10px;border-radius:var(--rxs);font-size:13px;font-weight:700;border:2px solid var(--border);background:var(--cream);color:var(--text2);cursor:pointer;font-family:'Sarabun',sans-serif;text-align:center;transition:all .15s}
+.btbtn.on{background:var(--lav);border-color:var(--lavd);color:var(--lavt)}
+
+/* CHANGE BRAND */
+.chgbtn{position:fixed;top:0;right:0;z-index:300;background:var(--white);border:1.5px solid var(--border);border-radius:0 0 0 var(--rsm);padding:6px 12px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;font-family:'Sarabun',sans-serif}
+
+/* RECEIPT FRAME */
+#rf,#pif{position:fixed;left:-9999px;top:0;width:420px;background:#fff;z-index:-1}
+
+/* misc */
+.sh{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;padding:2px 0 8px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.tagp{background:#fce4ec;color:#c2185b}.tagb{background:#e3f2fd;color:#1565c0}
+@media(max-width:380px){.fr.c2,.fr.c3{grid-template-columns:1fr}.itop{grid-template-columns:70px 1fr}.ibot{grid-template-columns:46px 1fr 68px}}
+</style>
+<script src="config.js" onerror="console.log('config.js not found - Drive sync disabled')"></script>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:8px">
+    <div id="app-logo-wrap" onclick="document.getElementById('app-logo-inp').click()"
+      style="width:72px;height:72px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;margin-bottom:12px;border:2px dashed var(--text2);transition:border-color .2s">
+      <span id="app-logo-inner" style="font-size:11px;color:var(--text2);font-weight:600;text-align:center;line-height:1.4">📷<br>Logo</span>
+    </div>
+    <input type="file" id="app-logo-inp" accept="image/*" style="display:none" onchange="saveAppLogo(event)">
+    <h1 style="font-family:'Quicksand',sans-serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:4px">Customer Bill</h1>
+  </div>
+  <p class="tagline">Select your branch to start</p>
+
+  <div class="brand-card bc1" onclick="selectBrand(0)">
+    <div class="bdot" id="splash-logo-0"
+      onclick="event.stopPropagation();document.getElementById('simg0').click()"
+      style="cursor:pointer;overflow:hidden;flex-direction:column;gap:2px;font-size:11px;font-weight:700;color:var(--p1t)">
+      <span style="font-size:20px;line-height:1">📷</span><span>Logo</span>
+    </div>
+    <input type="file" id="simg0" accept="image/*" style="display:none" onchange="saveSplashLogo(0,event)">
+    <div><div class="bname">Twelvefive 125</div><div class="bsub">สาขา Wuilai · Chiangmai</div></div>
+  </div>
+
+  <div class="brand-card bc2" onclick="selectBrand(1)">
+    <div class="bdot" id="splash-logo-1"
+      onclick="event.stopPropagation();document.getElementById('simg1').click()"
+      style="cursor:pointer;overflow:hidden;flex-direction:column;gap:2px;font-size:11px;font-weight:700;color:var(--p2t)">
+      <span style="font-size:20px;line-height:1">📷</span><span>Logo</span>
+    </div>
+    <input type="file" id="simg1" accept="image/*" style="display:none" onchange="saveSplashLogo(1,event)">
+    <div><div class="bname">Blue Nin</div><div class="bsub">สาขา Blue Nin · Soi 5 Nimman</div></div>
+  </div>
+
+  <div class="brand-card bc3" onclick="selectBrand(2)">
+    <div class="bdot" id="splash-logo-2"
+      onclick="event.stopPropagation();document.getElementById('simg2').click()"
+      style="cursor:pointer;overflow:hidden;flex-direction:column;gap:2px;font-size:11px;font-weight:700;color:var(--p3t)">
+      <span style="font-size:20px;line-height:1">📷</span><span>Logo</span>
+    </div>
+    <input type="file" id="simg2" accept="image/*" style="display:none" onchange="saveSplashLogo(2,event)">
+    <div><div class="bname">11th Entry</div><div class="bsub">สาขา 11th Entry · Chiang Mai</div></div>
+  </div>
+
+  <p style="font-size:11px;color:var(--text2);margin-top:14px;text-align:center">กดที่วงกลมเพื่อเพิ่มโลโก้แบรนด์</p>
+</div>
+
+<button class="chgbtn" id="chgbtn" style="display:none" onclick="showSplash()">🔄 เปลี่ยนสาขา</button>
+
+<!-- BOTTOM NAV -->
+<div class="bnav" id="bnav" style="display:none">
+  <button class="ntab on" id="nt0" onclick="goPage('bill',0)"><span class="ni">📝</span>กรอกบิล</button>
+  <button class="ntab" id="nt1" onclick="goPage('po',1)"><span class="ni">📦</span>Preorder</button>
+  <button class="ntab" id="nt2" onclick="goPage('sheet',2);renderSheet()"><span class="ni">📋</span>รายการ</button>
+</div>
+
+<!-- PAGE: BILL -->
+<div id="page-bill" class="page">
+  <div class="topbar">
+    <div><h1 id="tb-name">Twelvefive 125</h1><div class="sub" id="tb-sub">สาขา Wuilai · Live</div></div>
+    <div class="tbr"><div style="font-size:13px;font-weight:700" id="bno-disp">B001</div><div style="font-size:10px;opacity:.7" id="bdate-disp"></div></div>
+  </div>
+  <div class="sec">
+    <!-- Info -->
+    <div class="card">
+      <div class="fr c2">
+        <div class="f"><label>ชื่อลูกค้า</label><input id="b-cust" type="text" placeholder="ชื่อ..." autocomplete="off"></div>
+        <div class="f"><label>LINE ID ลูกค้า</label><input id="b-line" type="text" placeholder="@line..." autocomplete="off"></div>
+      </div>
+      <div class="fr c2">
+        <div class="f"><label>ชื่อทีม</label><input id="b-team" type="text" placeholder="ชื่อทีม..." autocomplete="off"></div>
+        <div class="f"><label>ประเทศ</label><input id="b-country" type="text" placeholder="Thailand" value="Thailand"></div>
+      </div>
+    </div>
+    <!-- Items -->
+    <div class="card">
+      <div class="ch">รายการสินค้า<span id="ibadge" style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bb);color:var(--bt)">0 รายการ</span></div>
+      <div id="ilist" class="ilist"></div>
+      <button class="addbtn" onclick="addItem()">+ เพิ่มรายการสินค้า</button>
+    </div>
+    <!-- Quick codes -->
+    <div class="sh">รหัสล่าสุด (กดเพิ่มเร็ว)</div>
+    <div class="qc" id="qchips"></div>
+    <!-- Summary -->
+    <div class="sbox">
+      <div class="srow"><span>ราคาก่อนลด</span><span id="s-sub">0 ฿</span></div>
+      <div class="srow" id="s-dr" style="display:none"><span id="s-dl">ส่วนลด</span><span id="s-dv" style="color:rgba(255,255,255,.75)">-0 ฿</span></div>
+      <div class="srow" id="s-sr" style="display:none"><span>ค่าส่ง</span><span id="s-sv">+0 ฿</span></div>
+      <div class="srow stot"><span>ยอดสุทธิ</span><span id="s-g">0 ฿</span></div>
+    </div>
+    <!-- Extra (collapsible) -->
+    <div class="card" id="extra-card">
+      <div class="ch">ค่าส่ง / ส่วนลด<span style="font-size:11px;font-weight:600;color:var(--bd);cursor:pointer" onclick="toggleExtra()">ซ่อน ↑</span></div>
+      <div class="fr c2" style="margin-bottom:10px">
+        <div class="f"><label>ค่าส่ง (฿)</label><input id="b-ship" type="number" inputmode="numeric" value="0" oninput="calc()"></div>
+        <div class="f">
+          <label>ส่วนลด</label>
+          <div class="dw">
+            <input id="b-disc" class="ii" type="number" inputmode="decimal" value="0" placeholder="0" oninput="calc()" style="background:var(--cream)">
+            <div class="dtog">
+              <button id="dt-b" class="on" onclick="setDT('baht')">฿</button>
+              <button id="dt-p" onclick="setDT('pct')">%</button>
+            </div>
+          </div>
+          <div id="dhint" style="font-size:11px;color:var(--text2);margin-top:4px;min-height:14px"></div>
+        </div>
+      </div>
+      <div class="f"><label>หมายเหตุ</label><input id="b-note" type="text" placeholder="หมายเหตุ..."></div>
+    </div>
+    <div id="extra-tog" style="display:none;text-align:center;margin:-6px 0 10px">
+      <span style="font-size:12px;color:var(--bd);font-weight:700;cursor:pointer" onclick="toggleExtra()">+ ค่าส่ง / ส่วนลด ↓</span>
+    </div>
+    <!-- PO CTA -->
+    <div class="card" style="border:2px solid var(--lavd);background:var(--lav)">
+      <div class="ch" style="color:var(--lavt);margin-bottom:8px">📦 ออเดอร์สั่งล่วงหน้า</div>
+      <p style="font-size:12px;color:var(--lavt);margin-bottom:10px">สินค้าที่ยังไม่มีของ / ต้องผลิต — บันทึกแยกจากบิลปกติ</p>
+      <button class="btn bl" style="font-size:14px;padding:12px;margin:0" onclick="goPage('po',1);openPOForm()">+ เพิ่ม Preorder ใหม่</button>
+    </div>
+    <button class="btn bs" onclick="saveBill()">💾 บันทึกบิล</button>
+    <!-- Drive sync status -->
+    <div id="sync-status" style="display:none;text-align:center;font-size:12px;color:var(--text2);padding:6px 12px;background:var(--cream);border-radius:20px;margin-bottom:8px;border:1px solid var(--border)"></div>
+    <button class="btn bo" onclick="exportBill()">📄 Export บิล PDF / รูปภาพ</button>
+    <button class="btn bg" style="font-size:13px" onclick="newBill()">🗑️ ล้างฟอร์ม</button>
+  </div>
+</div>
+
+<!-- PAGE: PREORDER -->
+<div id="page-po" class="page">
+  <div class="topbar">
+    <div><h1>📦 Preorder</h1><div class="sub">ออเดอร์สั่งล่วงหน้า / ผลิต</div></div>
+    <button class="tbtn" onclick="openPOForm()">+ จองใหม่</button>
+  </div>
+  <div class="sec">
+    <div class="sgrid" id="po-stats"></div>
+    <div id="sup-wrap" style="display:none" class="card">
+      <div class="ch" style="color:var(--lavt)">📋 ยอดรวมสั่งผลิต / Supplier <span id="sup-badge"></span></div>
+      <div id="sup-list"></div>
+      <button onclick="exportSupCSV()" style="margin-top:10px;width:100%;padding:10px;background:var(--lavd);color:#fff;border:none;border-radius:var(--rxs);font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif">📊 Export ส่ง Supplier</button>
+    </div>
+    <div class="frow">
+      <button class="fc on" onclick="filterPO('all',this)">ทั้งหมด</button>
+      <button class="fc" onclick="filterPO('Pending',this)">⏳ รอของ</button>
+      <button class="fc" onclick="filterPO('Ordered',this)">🏭 สั่งแล้ว</button>
+      <button class="fc" onclick="filterPO('Ready',this)">📦 ของมาแล้ว</button>
+      <button class="fc" onclick="filterPO('Shipped',this)">🚚 ส่งแล้ว</button>
+    </div>
+    <div id="po-list"></div>
+  </div>
+</div>
+
+<!-- PAGE: SHEET -->
+<div id="page-sheet" class="page">
+  <div class="topbar">
+    <div><h1>📋 รายการทั้งหมด</h1><div class="sub" id="sheet-sub">วันนี้ 0 บิล</div></div>
+    <button class="tbtn" onclick="exportCSV()">⬇ CSV</button>
+  </div>
+  <div class="sec">
+    <div class="sgrid">
+      <div class="sc"><div class="snum" id="st-b" style="color:var(--bd)">0</div><div class="slbl">บิลวันนี้</div></div>
+      <div class="sc"><div class="snum" id="st-r" style="color:var(--bd);font-size:18px">0 ฿</div><div class="slbl">ยอดวันนี้</div></div>
+      <div class="sc"><div class="snum" id="st-pp" style="color:#c2185b">0</div><div class="slbl">PO รอของ</div></div>
+      <div class="sc"><div class="snum" id="st-pr" style="color:#2e7d32">0</div><div class="slbl">PO ของมาแล้ว</div></div>
+    </div>
+    <div class="sh">บิลล่าสุด</div>
+    <div id="bill-list"></div>
+  </div>
+</div>
+
+<!-- MODAL: PO FORM -->
+<div class="mover" id="po-modal" onclick="closePOM(event)">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle">📦 บันทึก Preorder ใหม่</div>
+    <div class="sh" style="margin-bottom:6px">ประเภทบิล</div>
+    <div class="btw">
+      <button class="btbtn on" id="bt-m" onclick="setBT('merge')">📄 รวมบิล<br><span style="font-size:10px;font-weight:400">กับบิลปกติ</span></button>
+      <button class="btbtn" id="bt-s" onclick="setBT('sep')">📑 แยกบิล<br><span style="font-size:10px;font-weight:400">ใบสั่งผลิตแยก</span></button>
+    </div>
+    <!-- Customer info -->
+    <div class="fr c2">
+      <div class="f"><label>ชื่อลูกค้า *</label><input id="p-cust" type="text" placeholder="ชื่อ..."></div>
+      <div class="f"><label>LINE ID</label><input id="p-line" type="text" placeholder="@line..."></div>
+    </div>
+    <div class="fr c2">
+      <div class="f"><label>เบอร์โทร</label><input id="p-phone" type="tel" inputmode="tel" placeholder="08x..."></div>
+      <div class="f"><label>สาขา</label>
+        <select id="p-branch"><option>Wuilai</option><option>Blue Nin</option><option>11th Entry</option></select>
+      </div>
+    </div>
+    <div class="fr c2">
+      <div class="f"><label>มัดจำ (฿) — ไม่บังคับ</label><input id="p-dep" type="number" inputmode="numeric" placeholder="0"></div>
+      <div class="f"><label>วันที่คาดว่าของจะมา</label><input id="p-eta" type="date"></div>
+    </div>
+    <!-- PO Items list -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 8px">
+      <span style="font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase">รายการสินค้า</span>
+      <button onclick="addPOItem()" style="background:var(--lav);border:1.5px solid var(--lavd);color:var(--lavt);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif">+ เพิ่มรายการ</button>
+    </div>
+    <div id="po-items-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+    <!-- Image + note -->
+    <div class="f"><label>รูปภาพสินค้า / ตัวอย่าง</label>
+      <div class="upbox" id="po-upbox" onclick="document.getElementById('po-img-inp').click()">
+        <div class="ui">📷</div><span>แตะเพื่อเพิ่มรูป</span>
+      </div>
+      <input type="file" id="po-img-inp" accept="image/*" style="display:none" onchange="handlePOImg(event)">
+    </div>
+    <div class="f"><label>หมายเหตุ / รายละเอียดผลิต</label><textarea id="p-note" placeholder="หมายเหตุ สี ขนาด รายละเอียดพิเศษ..."></textarea></div>
+    <button class="btn bl" style="margin-top:4px" onclick="savePO()">💾 บันทึก Preorder</button>
+    <button class="btn bg" style="font-size:13px" onclick="closePOM()">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- MODAL: EXPORT -->
+<div class="mover" id="exp-modal" onclick="closeExpM(event)">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle">🖨️ Export บิล</div>
+    <!-- Logo row -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 14px;background:var(--cream);border-radius:var(--rsm);border:1.5px solid var(--border)">
+      <div id="logo-preview-exp" style="width:48px;height:48px;border-radius:var(--rxs);overflow:hidden;border:1.5px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:2px">โลโก้แบรนด์บนบิล</div>
+        <div style="font-size:11px;color:var(--text2)" id="logo-status-txt">ยังไม่มีโลโก้</div>
+      </div>
+      <button onclick="openLogoSettings()" style="padding:6px 12px;background:var(--bd);color:#fff;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;white-space:nowrap;flex-shrink:0">⚙️ ตั้งค่า</button>
+    </div>
+    <div id="exp-prev" style="background:var(--cream);border-radius:var(--rsm);padding:16px;margin-bottom:14px;border:1.5px solid var(--border);max-height:50vh;overflow-y:auto"></div>
+    <button class="btn bs" onclick="dlImg()">📷 บันทึกเป็นรูปภาพ</button>
+    <button class="btn bo" onclick="dlPDF()">📄 บันทึกเป็น PDF</button>
+    <button class="btn" style="background:#dcfce7;color:#166534;border:1.5px solid #86efac;font-size:14px" onclick="copyTxt()">📋 คัดลอกข้อความ LINE</button>
+    <button class="btn bg" style="font-size:13px" onclick="closeExpM()">ปิด</button>
+  </div>
+</div>
+
+<!-- MODAL: LOGO SETTINGS -->
+<div class="mover" id="logo-modal" onclick="closeLogoM(event)">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle">🖼️ ตั้งค่าโลโก้แบรนด์</div>
+
+    <!-- Brand tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px">
+      <button class="lbrtab on" data-bid="tw125" onclick="switchLogoBrand('tw125',this)" style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--p1);border:2px solid var(--p1d);color:var(--p1t);cursor:pointer;font-family:'Sarabun',sans-serif;white-space:nowrap;flex-shrink:0">🌹 Twelvefive</button>
+      <button class="lbrtab" data-bid="bn" onclick="switchLogoBrand('bn',this)" style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--cream);border:2px solid var(--border);color:var(--text2);cursor:pointer;font-family:'Sarabun',sans-serif;white-space:nowrap;flex-shrink:0">💙 Blue Nin</button>
+      <button class="lbrtab" data-bid="11e" onclick="switchLogoBrand('11e',this)" style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--cream);border:2px solid var(--border);color:var(--text2);cursor:pointer;font-family:'Sarabun',sans-serif;white-space:nowrap;flex-shrink:0">🌿 11th Entry</button>
+    </div>
+
+    <!-- Current logo preview -->
+    <div style="display:flex;justify-content:center;margin-bottom:16px">
+      <div id="logo-big-preview" style="width:100px;height:100px;border-radius:var(--rsm);border:2px solid var(--border);background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden">
+      </div>
+    </div>
+
+    <!-- Method 1: URL -->
+    <div style="background:var(--cream);border-radius:var(--rsm);padding:14px;margin-bottom:10px;border:1.5px solid var(--border)">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">วิธีที่ 1 — วาง URL รูปโลโก้ 🔗</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">ใช้วิธีนี้เพื่อให้ <b style="color:var(--text)">ทุกเครื่อง sync</b> กัน<br>อัพรูปใน Google Drive → Share → Copy Link</div>
+      <input id="logo-url-inp" type="url" placeholder="https://drive.google.com/... หรือ URL รูปภาพ" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--rxs);font-size:13px;font-family:'Sarabun',sans-serif;background:var(--white);color:var(--text);margin-bottom:8px">
+      <button onclick="saveLogoURL()" style="width:100%;padding:10px;background:var(--bd);color:#fff;border:none;border-radius:var(--rxs);font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif">✅ บันทึก URL โลโก้</button>
+    </div>
+
+    <!-- Method 2: Upload file (this device only) -->
+    <div style="background:var(--cream);border-radius:var(--rsm);padding:14px;margin-bottom:14px;border:1.5px solid var(--border)">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:4px">วิธีที่ 2 — อัพโหลดไฟล์ 📱</div>
+      <div style="font-size:11px;color:#f59e0b;margin-bottom:8px">⚠️ เก็บเฉพาะเครื่องนี้ — ต้องอัพโหลดซ้ำในเครื่องอื่น</div>
+      <button onclick="document.getElementById('logo-file-inp').click()" style="width:100%;padding:10px;background:var(--cream);color:var(--text2);border:1.5px solid var(--border);border-radius:var(--rxs);font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif">📷 เลือกรูปจากเครื่อง</button>
+      <input type="file" id="logo-file-inp" accept="image/*" style="display:none" onchange="handleLogoFile(event)">
+    </div>
+
+    <!-- Remove logo -->
+    <button onclick="removeLogo()" style="width:100%;padding:10px;background:var(--cream);color:#e85;border:1.5px solid #fcc;border-radius:var(--rxs);font-size:13px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;margin-bottom:8px">🗑️ ลบโลโก้สาขานี้</button>
+    <button class="btn bg" style="font-size:13px" onclick="closeLogoM()">ปิด</button>
+  </div>
+</div>
+
+<!-- MODAL: BILL DETAIL -->
+<div class="mover" id="bdet-modal" onclick="closeBDet(event)">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <div class="mtitle" id="bdet-title">รายละเอียดบิล</div>
+    <div id="bdet-content" style="margin-bottom:14px"></div>
+    <button class="btn bs" onclick="dlBillFromDetail()">📷 Export รูปภาพ</button>
+    <button class="btn bo" onclick="dlBillPDFFromDetail()">📄 Export PDF</button>
+    <button class="btn bg" style="font-size:13px" onclick="closeBDet()">ปิด</button>
+  </div>
+</div>
+
+<!-- HIDDEN FRAMES -->
+<div id="rf"></div>
+<div id="pif"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── BRANDS ───
+const BRANDS=[
+  {id:'tw125',name:'Twelvefive 125',branch:'สาขา Wuilai',addr:'Wuilay, Chiangmai, Thailand',
+   c:'#c8ecd4',cd:'#6dbb8a',ct:'#1a4a2e',cbg:'#f0faf4',em:'🌿',
+   footer:'Thank you for your support ♡'},
+  {id:'bn',name:'Blue Nin',branch:'สาขา Blue Nin',addr:'Soi 5 Nimman Chiang Mai, Thailand',
+   c:'#c8dff9',cd:'#89aee8',ct:'#1e3a6e',cbg:'#f5f9ff',em:'💙',
+   footer:'Thank you for your support ♡'},
+  {id:'11e',name:'11th Entry',branch:'สาขา 11th Entry',addr:'Chiang Mai, Thailand',
+   c:'#dddde0',cd:'#8e8e96',ct:'#2e2e38',cbg:'#f5f5f7',em:'🩶',
+   footer:'Thank you for your support ♡'},
+];
+
+// ─── STATE ───
+let brand=null,items=[],iid=0,iimgs={};
+let bills=JSON.parse(localStorage.getItem('lb3_b')||'[]');
+let pos=JSON.parse(localStorage.getItem('lb3_p')||'[]');
+let bc=bills.length+1,pc=pos.length+1;
+let dt='baht',extraVis=true,poFilt='all',pobt='merge',poImg=null;
+let qcodes=JSON.parse(localStorage.getItem('lb3_q')||'[]');
+// per-brand logo images stored separately
+let brandLogos=JSON.parse(localStorage.getItem('lb3_logos')||'{}');
+
+// Show logos on splash cards
+(function initSplashLogos(){
+  BRANDS.forEach((b,i)=>{
+    const logo=brandLogos[b.id];
+    const el=document.getElementById('splash-logo-'+i);
+    if(el&&logo){
+      el.innerHTML=`<img src="${logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      el.style.background='#fff';
+    }
+  });
+})();
+
+// Upload logo directly from splash card
+function saveSplashLogo(idx, e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const logo=ev.target.result;
+    const bid=BRANDS[idx].id;
+    brandLogos[bid]=logo;
+    try{ localStorage.setItem('lb3_logos',JSON.stringify(brandLogos)); }catch(err){}
+    const el=document.getElementById('splash-logo-'+idx);
+    if(el){
+      el.innerHTML=`<img src="${logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      el.style.background='#fff';
+    }
+    toast('✅ บันทึกโลโก้แล้ว!','ok');
+  };
+  r.readAsDataURL(f);
+}
+
+// App-level logo (shown above "Customer Bill")
+function saveAppLogo(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const logo=ev.target.result;
+    try{ localStorage.setItem('lb3_applogo', logo); }catch(err){}
+    renderAppLogo(logo);
+    toast('✅ บันทึกโลโก้แล้ว!','ok');
+  };
+  r.readAsDataURL(f);
+}
+function renderAppLogo(logo){
+  const wrap=document.getElementById('app-logo-wrap');
+  const inner=document.getElementById('app-logo-inner');
+  if(!wrap) return;
+  if(logo){
+    wrap.style.border='none';
+    inner.innerHTML=`<img src="${logo}" style="width:72px;height:72px;object-fit:cover;border-radius:50%;display:block">`;
+  } else {
+    wrap.style.border='2px dashed var(--text2)';
+    inner.innerHTML='📷<br>Logo';
+  }
+}
+// Load on start
+(function(){ renderAppLogo(localStorage.getItem('lb3_applogo')||''); })();
+
+// ─── BRAND SELECT ───
+function selectBrand(i){
+  brand=BRANDS[i];
+  applyBrand();
+  document.getElementById('splash').style.display='none';
+  document.getElementById('bnav').style.display='flex';
+  document.getElementById('chgbtn').style.display='block';
+  ['bill','po','sheet'].forEach(p=>document.getElementById('page-'+p).classList.remove('on'));
+  goPage('bill',0);
+  initBill();
+}
+function applyBrand(){
+  const b=brand;
+  const r=document.documentElement.style;
+  r.setProperty('--bd',b.cd);r.setProperty('--bt',b.ct);
+  r.setProperty('--bb',b.c);r.setProperty('--bbg',b.cbg);
+  document.getElementById('tb-name').textContent=b.name;
+  document.getElementById('tb-sub').textContent=b.branch+' · Live';
+  document.title=b.name+' · Live Bill';
+}
+function showSplash(){
+  document.getElementById('splash').style.display='flex';
+  document.getElementById('bnav').style.display='none';
+  document.getElementById('chgbtn').style.display='none';
+}
+
+// ─── NAV ───
+function goPage(name,idx){
+  ['bill','po','sheet'].forEach(p=>document.getElementById('page-'+p).classList.remove('on'));
+  [0,1,2].forEach(i=>document.getElementById('nt'+i).classList.remove('on'));
+  document.getElementById('page-'+name).classList.add('on');
+  document.getElementById('nt'+idx).classList.add('on');
+  if(name==='po') renderPOs();
+}
+
+// ─── INIT ───
+function initBill(){
+  document.getElementById('bdate-disp').textContent=fmtDateEng(new Date());
+  document.getElementById('bno-disp').textContent=genBNo();
+  renderQChips(); renderPOs();
+  addItem();addItem();addItem(); calc();
+  if(window.innerWidth<500){
+    document.getElementById('extra-card').style.display='none';
+    document.getElementById('extra-tog').style.display='block';
+    extraVis=false;
+  }
+}
+
+// ─── ITEMS ───
+function addItem(code,name,qty,price){
+  const id=++iid;
+  items.push({id,code:code||'',name:name||'',qty:qty||1,price:price||0,cancelled:false});
+  renderItems();calc();
+  setTimeout(()=>{const a=document.querySelectorAll('.icod');if(a.length&&!code)a[a.length-1].focus();},60);
+}
+function renderItems(){
+  let n=0;
+  document.getElementById('ilist').innerHTML=items.map(it=>{
+    if(!it.cancelled)n++;
+    const img=iimgs[it.id];
+    return`<div class="irow${it.cancelled?' xx':''}" id="ir${it.id}">
+<div class="igrid">
+<div class="imain">
+  <div class="itop">
+    <input class="ii icod" value="${esc(it.code)}" placeholder="รหัส A132" onchange="upd(${it.id},'code',this.value)" onfocus="this.select()" style="font-weight:700;color:var(--bd)">
+    <input class="ii" value="${esc(it.name)}" placeholder="ชื่อสินค้า" onchange="upd(${it.id},'name',this.value)">
+  </div>
+  <div class="ibot">
+    <input class="ii r" type="number" inputmode="numeric" value="${it.qty}" min="1" onchange="upd(${it.id},'qty',+this.value)" onfocus="this.select()">
+    <input class="ii r" type="number" inputmode="decimal" value="${it.price||''}" placeholder="ราคา ฿" onchange="upd(${it.id},'price',+this.value)" onfocus="this.select()" onkeydown="if(event.key==='Enter'){event.preventDefault();addItem()}">
+    <div class="itot">${it.cancelled?'-':(it.qty*it.price).toLocaleString()+' ฿'}</div>
+  </div>
+</div>
+<div class="ictrls">
+  <div class="iimgbox" onclick="pickImg(${it.id})" style="cursor:pointer">
+    ${img?`<img src="${img}" style="width:100%;height:100%;object-fit:cover">`:'📷'}
+  </div>
+  <input type="file" accept="image/*" data-iid="${it.id}" style="display:none;position:absolute;opacity:0;pointer-events:none" onchange="handleIImg(${it.id},event)">
+  <button class="xbtn" onclick="toggleX(${it.id})">${it.cancelled?'↩':'✕'}</button>
+</div>
+</div></div>`;
+  }).join('');
+  document.getElementById('ibadge').textContent=items.filter(x=>!x.cancelled).length+' รายการ';
+  // After render: attach click handlers properly (avoid ID-number issues)
+  document.querySelectorAll('#ilist .iimgbox').forEach(box=>{
+    const iid=parseInt(box.getAttribute('onclick').match(/\d+/)?.[0]);
+    if(!iid) return;
+    const inp=document.querySelector(`input[data-iid="${iid}"]`);
+    if(inp){
+      box.onclick=null;
+      box.addEventListener('click',()=>inp.click());
+      inp.addEventListener('change',(e)=>handleIImg(iid,e));
+    }
+  });
+}
+function upd(id,f,v){const it=items.find(x=>x.id===id);if(it){it[f]=v;renderItems();calc();}}
+function toggleX(id){const it=items.find(x=>x.id===id);if(it){it.cancelled=!it.cancelled;renderItems();calc();}}
+function pickImg(id){
+  // use querySelector with attribute selector to avoid ID-starts-with-digit issues
+  const inp=document.querySelector(`input[data-iid="${id}"]`);
+  if(inp) inp.click();
+}
+function handleIImg(id,e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{iimgs[id]=ev.target.result;renderItems();};r.readAsDataURL(f);}
+
+// ─── CALC ───
+function calc(){
+  const act=items.filter(x=>!x.cancelled);
+  const sub=act.reduce((s,x)=>s+x.qty*x.price,0);
+  const ship=parseFloat(document.getElementById('b-ship').value)||0;
+  const dv=parseFloat(document.getElementById('b-disc').value)||0;
+  // Only apply discount if sub > 0
+  const disc=sub>0?(dt==='pct'?Math.round(sub*dv/100):dv):0;
+  const grand=Math.max(0,sub-disc+ship);
+  document.getElementById('s-sub').textContent=sub.toLocaleString()+' ฿';
+  document.getElementById('s-g').textContent=grand.toLocaleString()+' ฿';
+  // Show discount row only when there's actual discount amount
+  document.getElementById('s-dr').style.display=(disc>0&&sub>0)?'':'none';
+  document.getElementById('s-sr').style.display=ship>0?'':'none';
+  document.getElementById('s-dl').textContent=dt==='pct'?`Discount ${dv}%`:'Discount';
+  document.getElementById('s-dv').textContent='-'+disc.toLocaleString()+' ฿';
+  document.getElementById('s-sv').textContent='+'+ship.toLocaleString()+' ฿';
+  // hint only when price exists
+  document.getElementById('dhint').textContent=(dt==='pct'&&dv>0&&sub>0)?`${dv}% = ${disc.toLocaleString()} ฿`:'';
+  return{sub,ship,disc,dv,discType:dt,grand};
+}
+function setDT(t){dt=t;document.getElementById('dt-b').className=t==='baht'?'on':'';document.getElementById('dt-p').className=t==='pct'?'on':'';calc();}
+function toggleExtra(){extraVis=!extraVis;document.getElementById('extra-card').style.display=extraVis?'':'none';document.getElementById('extra-tog').style.display=extraVis?'none':'block';}
+
+// ─── SAVE BILL ───
+function saveBill(){
+  const act=items.filter(x=>!x.cancelled&&(x.code||x.price>0));
+  if(!act.length){toast('⚠️ เพิ่มสินค้าก่อนนะคะ','err');return;}
+  const t=calc();
+  const bill={id:Date.now(),billNo:genBNo(),brandId:brand.id,brandName:brand.name,
+    brandAddr:brand.addr||'',
+    date:new Date().toISOString().split('T')[0],
+    dateStr:fmtDateEng(new Date()),
+    time:new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),
+    customer:document.getElementById('b-cust').value||'ลูกค้า',
+    lineId:document.getElementById('b-line').value,
+    team:document.getElementById('b-team').value,
+    country:document.getElementById('b-country').value||'Thailand',
+    note:document.getElementById('b-note').value,
+    items:JSON.parse(JSON.stringify(items)),
+    iimgs:{...iimgs},...t};
+  bills.unshift(bill);save();bc++;
+  act.forEach(it=>{if(it.code)addQCode(it.code);});
+  toast('✅ บันทึกบิล '+bill.billNo+' · '+act.length+' รายการ!','ok');
+  // Sync to Google Drive (async — ไม่บล็อก UI)
+  syncBillToDrive(bill);
+  newBill();
+}
+function newBill(){
+  items=[];iid=0;iimgs={};renderItems();
+  ['b-cust','b-line','b-team','b-note'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('b-country').value='Thailand';
+  document.getElementById('b-disc').value=0;
+  document.getElementById('b-ship').value=0;
+  document.getElementById('bno-disp').textContent=genBNo();
+  dt='baht';setDT('baht');calc();
+  addItem();addItem();addItem();
+}
+
+// ─── GOOGLE DRIVE SYNC ───────────────────────────────────────
+// ดึง Apps Script URL จาก config.js (load ก่อน index.html)
+// หรือใส่ URL ตรงๆ ด้านล่างนี้ถ้า Repo เป็น Private
+function getAppsScriptURL(){
+  // ตรวจว่ามี config.js โหลดไหม (GitHub Pages + config.js)
+  if(typeof APP_CONFIG !== 'undefined' && APP_CONFIG.APPS_SCRIPT_URL &&
+     APP_CONFIG.APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_WEB_APP_URL'){
+    return APP_CONFIG.APPS_SCRIPT_URL;
+  }
+  // fallback: ใส่ URL ตรงนี้ได้เลยถ้าต้องการ (Repo Private)
+  return '';
+}
+
+async function syncBillToDrive(bill){
+  const url = getAppsScriptURL();
+  if(!url){ updateSyncStatus('⚪ ยังไม่ตั้งค่า Drive sync'); return; }
+  updateSyncStatus('🔄 กำลังส่ง Google Drive...');
+  try{
+    // Build payload — ใส่ item images + logo
+    const payload = JSON.parse(JSON.stringify(bill));
+
+    // แนบรูปสินค้าในแต่ละ item (imgSrc field)
+    if(bill.iimgs){
+      payload.items = payload.items.map(it=>({
+        ...it,
+        imgSrc: bill.iimgs[it.id] || null
+      }));
+    }
+    delete payload.iimgs; // ลบ map เก่าออก (ใช้ imgSrc แทน)
+
+    // แนบโลโก้แบรนด์
+    if(brand) payload.logoData = getBrandLogo(brand.id) || null;
+    payload.brandEmoji = brand ? brand.em : '🌸';
+    payload.brandAddr  = brand ? brand.addr : '';
+
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveBill', bill: payload }),
+    });
+    const data = await res.json();
+    if(data.ok){
+      updateSyncStatus('✅ บันทึกลง Drive แล้ว! ' + (data.pdfName||''));
+      const saved = bills.find(b=>b.id===bill.id);
+      if(saved){ saved.driveUrl=data.pdfUrl; saved.driveFolder=data.folderUrl; save(); }
+    } else {
+      updateSyncStatus('⚠️ Drive error: '+data.msg);
+      console.error('Drive error:', data);
+    }
+  } catch(err){
+    updateSyncStatus('⚠️ เชื่อมต่อ Drive ไม่ได้');
+    console.error('Drive sync error:', err);
+  }
+}
+
+async function syncPreorderToDrive(po){
+  const url = getAppsScriptURL();
+  if(!url) return;
+  try{
+    const payload = JSON.parse(JSON.stringify(po));
+    delete payload.imgData; // ไม่ส่งรูป
+    await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'savePreorder', preorder: payload }),
+    });
+  } catch(err){ console.error('PO sync error:', err); }
+}
+
+function updateSyncStatus(msg){
+  const el = document.getElementById('sync-status');
+  if(el){ el.textContent = msg; el.style.display = 'block';
+    setTimeout(()=>{ el.style.display='none'; }, 4000); }
+}
+
+// ─── EXPORT BILL ───
+function exportBill(){
+  const act=items.filter(x=>!x.cancelled&&(x.code.trim()||x.price>0));
+  if(!act.length){toast('⚠️ ยังไม่มีรายการ','err');return;}
+  const t=calc();
+  refreshExpModal();
+  const html=buildReceipt({b:brand,
+    customer:document.getElementById('b-cust').value||'ลูกค้า',
+    lineId:document.getElementById('b-line').value,
+    team:document.getElementById('b-team').value,
+    country:document.getElementById('b-country').value,
+    note:document.getElementById('b-note').value,
+    billNo:document.getElementById('bno-disp').textContent,
+    dateStr:fmtDateEng(new Date()),act,t,iimgs});
+  document.getElementById('rf').innerHTML=html;
+  document.getElementById('exp-prev').innerHTML=html;
+  document.getElementById('exp-modal').classList.add('open');
+}
+
+function refreshExpModal(){
+  if(!brand) return;
+  const logo = getBrandLogo(brand.id);
+  const prev = document.getElementById('logo-preview-exp');
+  const statusTxt = document.getElementById('logo-status-txt');
+  if(prev){
+    prev.innerHTML = logo
+      ? `<img src="${logo}" style="width:100%;height:100%;object-fit:contain">`
+      : brand.em;
+  }
+  if(statusTxt){
+    const isURL = brandLogos[brand.id] && !brandLogos[brand.id].startsWith('data:');
+    statusTxt.textContent = logo
+      ? (isURL ? '✅ URL โลโก้ — sync ทุกเครื่อง' : '✅ ไฟล์ (เฉพาะเครื่องนี้)')
+      : 'ยังไม่มีโลโก้ — กด ⚙️ ตั้งค่า';
+    statusTxt.style.color = logo ? (isURL ? '#2e7d32' : '#c8940a') : 'var(--text2)';
+  }
+}
+
+// Get best logo: URL-based wins over file-based for cross-device
+function getBrandLogo(bid){
+  const stored = brandLogos[bid];
+  return stored || null;
+}
+
+// ─── LOGO SETTINGS MODAL ───
+let currentLogoBrand = null;
+
+function openLogoSettings(){
+  currentLogoBrand = brand ? brand.id : 'tw125';
+  document.getElementById('logo-modal').classList.add('open');
+  refreshLogoModal();
+}
+
+function switchLogoBrand(bid, btn){
+  currentLogoBrand = bid;
+  document.querySelectorAll('.lbrtab').forEach(b=>{
+    const isCurrent = b.getAttribute('data-bid') === bid;
+    b.style.background = isCurrent ? 'var(--p1)' : 'var(--cream)';
+    b.style.borderColor = isCurrent ? 'var(--p1d)' : 'var(--border)';
+    b.style.color = isCurrent ? 'var(--p1t)' : 'var(--text2)';
+    b.classList.toggle('on', isCurrent);
+  });
+  refreshLogoModal();
+}
+
+function refreshLogoModal(){
+  const logo = getBrandLogo(currentLogoBrand);
+  const bigPrev = document.getElementById('logo-big-preview');
+  const urlInp = document.getElementById('logo-url-inp');
+  if(bigPrev){
+    bigPrev.innerHTML = logo
+      ? `<img src="${logo}" style="width:100%;height:100%;object-fit:contain">`
+      : (BRANDS.find(b=>b.id===currentLogoBrand)?.em || '📷');
+  }
+  if(urlInp){
+    const cur = brandLogos[currentLogoBrand];
+    urlInp.value = (cur && !cur.startsWith('data:')) ? cur : '';
+  }
+}
+
+function saveLogoURL(){
+  const url = document.getElementById('logo-url-inp').value.trim();
+  if(!url){ toast('⚠️ ใส่ URL ก่อนนะคะ','err'); return; }
+  // Convert Google Drive share URL to direct image URL
+  const directURL = convertGDriveURL(url);
+  brandLogos[currentLogoBrand] = directURL;
+  saveBrandLogos();
+  refreshLogoModal();
+  if(brand && brand.id === currentLogoBrand) refreshExpModal();
+  toast('✅ บันทึก URL โลโก้แล้ว! ทุกเครื่องจะเห็นเหมือนกัน 🎉','ok');
+}
+
+function convertGDriveURL(url){
+  // Convert Google Drive share link to direct image link
+  const m = url.match(/\/d\/([\w-]+)/);
+  if(m) return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400`;
+  return url;
+}
+
+function handleLogoFile(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    brandLogos[currentLogoBrand] = ev.target.result;
+    saveBrandLogos();
+    refreshLogoModal();
+    if(brand && brand.id === currentLogoBrand) refreshExpModal();
+    toast('✅ อัพโหลดโลโก้แล้ว (เฉพาะเครื่องนี้)','ok');
+  };
+  r.readAsDataURL(f);
+}
+
+function removeLogo(){
+  delete brandLogos[currentLogoBrand];
+  saveBrandLogos();
+  refreshLogoModal();
+  if(brand && brand.id === currentLogoBrand) refreshExpModal();
+  toast('🗑️ ลบโลโก้แล้ว','ok');
+}
+
+function saveBrandLogos(){
+  try{ localStorage.setItem('lb3_logos', JSON.stringify(brandLogos)); }catch(e){}
+}
+
+function closeLogoM(e){
+  if(!e || e.target === document.getElementById('logo-modal'))
+    document.getElementById('logo-modal').classList.remove('open');
+}
+
+// kept for backward compat
+function handleLogoUpload(e){ handleLogoFile(e); }
+
+function buildReceipt({b,customer,lineId,team,country,note,billNo,dateStr,act,t,iimgs}){
+  // filter out empty rows (no code AND price=0)
+  const validAct=act.filter(x=>x.code||x.price>0);
+  const rows=validAct.map((x,i)=>{
+    const img=(iimgs&&iimgs[x.id])?`<img src="${iimgs[x.id]}" style="width:46px;height:46px;object-fit:cover;border-radius:8px;border:1px solid #f0e8ec;margin-right:10px;flex-shrink:0">`:'';
+    return`<tr><td style="padding:8px 0;border-bottom:1px solid #faf0f3;vertical-align:middle">
+      <div style="display:flex;align-items:center">${img}<div>
+        <div style="font-weight:700;color:${b.cd};font-size:13px;font-family:'Quicksand',sans-serif">${x.code||'—'}</div>
+        ${x.name?`<div style="font-size:11px;color:#aaa;font-family:'Quicksand',sans-serif">${x.name}</div>`:''}
+      </div></div></td>
+      <td style="text-align:center;padding:8px 6px;border-bottom:1px solid #faf0f3;font-size:13px;font-family:'Quicksand',sans-serif">${x.qty}</td>
+      <td style="text-align:right;padding:8px 0;border-bottom:1px solid #faf0f3;font-size:13px;font-family:'Quicksand',sans-serif">${x.price.toLocaleString()}</td>
+      <td style="text-align:right;padding:8px 0 8px 6px;border-bottom:1px solid #faf0f3;font-size:13px;font-weight:700;font-family:'Quicksand',sans-serif">${(x.qty*x.price).toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+  const discLabel=t.discType==='pct'?`Discount ${t.dv}%`:'Discount';
+  // logo: use URL/uploaded logo if exists, else emoji
+  const logoData=getBrandLogo(b.id);
+  const logoHtml=logoData
+    ?`<img src="${logoData}" style="width:64px;height:64px;object-fit:contain;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto">`
+    :`<div style="font-size:40px;margin-bottom:8px;line-height:1">${b.em}</div>`;
+  return`<div id="ri" style="background:#fff;font-family:'Quicksand',sans-serif;padding:0">
+    <div style="background:${b.cbg};padding:20px;text-align:center;border-bottom:2px solid ${b.cd}30">
+      ${logoHtml}
+      <div style="font-size:18px;font-weight:700;color:${b.ct};font-family:'Quicksand',sans-serif;letter-spacing:.3px">${b.name}</div>
+      <div style="font-size:11px;color:${b.ct};opacity:.7;margin-top:3px;font-family:'Quicksand',sans-serif">${b.addr}</div>
+      <div style="font-size:11px;color:${b.ct};opacity:.7;margin-top:1px;font-family:'Quicksand',sans-serif">${dateStr}</div>
+    </div>
+    <div style="padding:14px 20px 0">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:11px;color:#ccc;font-family:'Quicksand',sans-serif;letter-spacing:1px">BILL NO.</span>
+        <span style="font-size:12px;font-weight:700;color:${b.cd};font-family:'Quicksand',sans-serif">${billNo}</span>
+      </div>
+      <div style="font-size:11px;color:#ccc;margin-bottom:2px;font-family:'Quicksand',sans-serif;letter-spacing:.5px">CUSTOMER NAME</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px;font-family:'Quicksand',sans-serif;color:#3d2a33">${customer}</div>
+      ${lineId?`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;font-family:'Quicksand',sans-serif"><span style="color:#ccc;letter-spacing:.5px">LINE</span><span style="color:#3d2a33">${lineId}</span></div>`:''}
+      ${team?`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;font-family:'Quicksand',sans-serif"><span style="color:#ccc;letter-spacing:.5px">TEAM</span><span style="color:#3d2a33">${team}</span></div>`:''}
+      ${country?`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;font-family:'Quicksand',sans-serif"><span style="color:#ccc;letter-spacing:.5px">COUNTRY</span><span style="color:#3d2a33">${country}</span></div>`:''}
+    </div>
+    <div style="margin:12px 20px;border-top:1px dashed #f0d8e0"></div>
+    <div style="padding:0 20px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="font-size:10px;color:#ccc;text-align:left;padding-bottom:6px;font-weight:600;font-family:'Quicksand',sans-serif;letter-spacing:1px">ITEM</th>
+          <th style="font-size:10px;color:#ccc;text-align:center;padding-bottom:6px;font-weight:600;font-family:'Quicksand',sans-serif;letter-spacing:1px">QTY</th>
+          <th style="font-size:10px;color:#ccc;text-align:right;padding-bottom:6px;font-weight:600;font-family:'Quicksand',sans-serif;letter-spacing:1px">PRICE</th>
+          <th style="font-size:10px;color:#ccc;text-align:right;padding-bottom:6px;font-weight:600;font-family:'Quicksand',sans-serif;letter-spacing:1px">TOTAL</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="margin:12px 20px;border-top:1px dashed #f0d8e0"></div>
+    <div style="padding:0 20px 4px">
+      ${t.disc>0?`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;font-family:'Quicksand',sans-serif"><span style="color:#888">${discLabel}</span><span style="color:${b.cd}">- ${t.disc.toLocaleString()} ฿</span></div>`:''}
+      ${t.ship>0?`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;font-family:'Quicksand',sans-serif"><span style="color:#888">Shipping</span><span style="color:#888">+ ${t.ship.toLocaleString()} ฿</span></div>`:''}
+    </div>
+    <div style="background:${b.cbg};margin:0 16px 16px;border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:14px;font-weight:700;color:${b.ct};font-family:'Quicksand',sans-serif;letter-spacing:.5px">TOTAL</span>
+      <span style="font-size:22px;font-weight:700;color:${b.cd};font-family:'Quicksand',sans-serif">${t.grand.toLocaleString()} ฿</span>
+    </div>
+    ${note?`<div style="padding:0 20px 8px;font-size:11px;color:#bbb;font-family:'Quicksand',sans-serif">Note: ${note}</div>`:''}
+    <div style="padding:14px 20px 20px;text-align:center;border-top:1px solid #faf0f3">
+      <div style="font-size:13px;color:${b.ct};font-weight:600;font-family:'Quicksand',sans-serif;letter-spacing:.3px">${b.footer}</div>
+    </div>
+  </div>`;
+}
+
+async function dlImg(){
+  const el=document.getElementById('ri');
+  if(!el)return;
+  toast('⏳ กำลังสร้างรูป...','');
+  try{
+    const c=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#fff'});
+    const a=document.createElement('a');
+    a.download='bill_'+document.getElementById('bno-disp').textContent+'.png';
+    a.href=c.toDataURL('image/png');a.click();
+    toast('✅ บันทึกรูปแล้ว!','ok');
+  }catch(e){toast('❌ ไม่สามารถสร้างรูปได้','err');}
+}
+async function dlPDF(){
+  const el=document.getElementById('ri');
+  if(!el)return;
+  toast('⏳ กำลังสร้าง PDF...','');
+  try{
+    const c=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#fff'});
+    const img=c.toDataURL('image/png');
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a5'});
+    const pw=pdf.internal.pageSize.getWidth();
+    pdf.addImage(img,'PNG',0,0,pw,pw*(c.height/c.width));
+    pdf.save('bill_'+document.getElementById('bno-disp').textContent+'.pdf');
+    toast('✅ บันทึก PDF แล้ว!','ok');
+  }catch(e){toast('❌ ไม่สามารถสร้าง PDF ได้','err');}
+}
+function copyTxt(){
+  const act=items.filter(x=>!x.cancelled);
+  const t=calc();const b=brand;
+  const cust=document.getElementById('b-cust').value||'ลูกค้า';
+  const lineId=document.getElementById('b-line').value;
+  let txt=`${b.em} ${b.name}\n${b.addr}\n${fmtDateEng(new Date())}\nCustomer: ${cust}${lineId?' (LINE: '+lineId+')':''}\n`;
+  txt+='────────────────\n';
+  act.forEach((x,i)=>{txt+=`${i+1}. ${x.code}${x.name?' '+x.name:''} × ${x.qty} = ${(x.qty*x.price).toLocaleString()} ฿\n`;});
+  txt+='────────────────\n';
+  if(t.disc>0)txt+=`ส่วนลด${dt==='pct'?' '+t.dv+'%':''}: -${t.disc.toLocaleString()} ฿\n`;
+  if(t.ship>0)txt+=`ค่าส่ง: +${t.ship.toLocaleString()} ฿\n`;
+  txt+=`💚 ยอดสุทธิ: ${t.grand.toLocaleString()} ฿\n${b.footer}`;
+  navigator.clipboard.writeText(txt).then(()=>{toast('✅ คัดลอกแล้ว!','ok');closeExpM();}).catch(()=>toast('❌ ไม่สามารถคัดลอกได้','err'));
+}
+function closeExpM(e){if(!e||e.target===document.getElementById('exp-modal'))document.getElementById('exp-modal').classList.remove('open');}
+
+// ─── QUICK CODES ───
+function addQCode(c){if(!c||qcodes.includes(c))return;qcodes.unshift(c);if(qcodes.length>10)qcodes=qcodes.slice(0,10);localStorage.setItem('lb3_q',JSON.stringify(qcodes));renderQChips();}
+function renderQChips(){document.getElementById('qchips').innerHTML=qcodes.map(c=>`<button class="qchip" onclick="addItem('${c}')">+ ${c}</button>`).join('');}
+
+// ─── PREORDER MULTI-ITEM ───
+let poItems=[],poItemId=0,poItemImgs={};
+function addPOItem(code,size,qty,price){
+  const id=++poItemId;
+  poItems.push({id,code:code||'',size:size||'',qty:qty||1,price:price||0});
+  renderPOItems();
+}
+function renderPOItems(){
+  document.getElementById('po-items-list').innerHTML=poItems.map(it=>{
+    const img=poItemImgs[it.id];
+    return`<div style="background:var(--cream);border-radius:var(--rsm);padding:10px 12px;border:1.5px solid var(--border)">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start">
+        <div>
+          <div style="display:grid;grid-template-columns:88px 1fr;gap:6px;margin-bottom:6px">
+            <input class="ii" value="${esc(it.code)}" placeholder="รหัส *" onchange="updPI(${it.id},'code',this.value)" style="font-weight:700;color:var(--lavt)">
+            <input class="ii" value="${esc(it.size)}" placeholder="ไซส์ / สี / รายละเอียด" onchange="updPI(${it.id},'size',this.value)">
+          </div>
+          <div style="display:grid;grid-template-columns:52px 1fr 80px;gap:6px;align-items:center">
+            <input class="ii r" type="number" inputmode="numeric" value="${it.qty}" min="1" onchange="updPI(${it.id},'qty',+this.value)" onfocus="this.select()">
+            <input class="ii r" type="number" inputmode="decimal" value="${it.price||''}" placeholder="ราคา ฿" onchange="updPI(${it.id},'price',+this.value)" onfocus="this.select()">
+            <div style="display:flex;justify-content:flex-end;align-items:center">
+              <span style="font-size:13px;font-weight:700;color:var(--lavt)">${(it.qty*(it.price||0)).toLocaleString()} ฿</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div data-piid="${it.id}" style="width:52px;height:52px;border-radius:var(--rxs);overflow:hidden;border:1.5px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0">
+            ${img?`<img src="${img}" style="width:100%;height:100%;object-fit:cover">`:'📷'}
+          </div>
+          <input type="file" accept="image/*" data-piid="${it.id}" style="display:none;position:absolute;opacity:0;pointer-events:none" onchange="handlePIImg(${it.id},event)">
+          <button onclick="removePI(${it.id})" style="width:28px;height:28px;border-radius:50%;background:var(--white);border:1.5px solid var(--border);color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  // attach click handlers after render
+  document.querySelectorAll('[data-piid]').forEach(el=>{
+    const pid=parseInt(el.getAttribute('data-piid'));
+    if(el.tagName==='DIV'){
+      el.onclick=()=>{
+        const inp=document.querySelector(`input[type="file"][data-piid="${pid}"]`);
+        if(inp) inp.click();
+      };
+    }
+  });
+}
+function updPI(id,f,v){const it=poItems.find(x=>x.id===id);if(it){it[f]=v;renderPOItems();}}
+function removePI(id){poItems=poItems.filter(x=>x.id!==id);poItemImgs[id]=null;renderPOItems();}
+function handlePIImg(id,e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{poItemImgs[id]=ev.target.result;renderPOItems();};r.readAsDataURL(f);}
+
+function openPOForm(){
+  poImg=null; poItems=[]; poItemId=0; poItemImgs={};
+  document.getElementById('po-upbox').innerHTML='<div class="ui">📷</div><span>แตะเพื่อเพิ่มรูป</span>';
+  ['p-cust','p-line','p-phone','p-note','p-eta'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const dep=document.getElementById('p-dep');if(dep)dep.value='';
+  document.getElementById('po-items-list').innerHTML='';
+  document.getElementById('po-modal').classList.add('open');
+  addPOItem(); addPOItem(); addPOItem(); // start with 3 rows
+  setTimeout(()=>document.getElementById('p-cust').focus(),200);
+}
+function closePOM(e){if(!e||e.target===document.getElementById('po-modal'))document.getElementById('po-modal').classList.remove('open');}
+function handlePOImg(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{poImg=ev.target.result;document.getElementById('po-upbox').innerHTML=`<div class="ithumb" style="width:80px;height:80px"><img src="${poImg}"><button onclick="event.stopPropagation();poImg=null;document.getElementById('po-upbox').innerHTML='<div class=\\'ui\\'>📷</div><span>แตะเพื่อเพิ่มรูป</span>'">✕</button></div>`;};r.readAsDataURL(f);}
+function setBT(t){pobt=t;document.getElementById('bt-m').className='btbtn'+(t==='merge'?' on':'');document.getElementById('bt-s').className='btbtn'+(t==='sep'?' on':'');}
+function savePO(){
+  const cust=document.getElementById('p-cust').value.trim();
+  if(!cust){toast('⚠️ ใส่ชื่อลูกค้าก่อนนะคะ','err');return;}
+  const validItems=poItems.filter(x=>x.code.trim()||x.price>0);
+  if(!validItems.length){toast('⚠️ เพิ่มรายการสินค้าอย่างน้อย 1 รายการ','err');return;}
+  // attach images to items
+  const itemsWithImg=validItems.map(it=>({...it,imgData:poItemImgs[it.id]||null}));
+  const po={id:Date.now(),poNo:genPNo(),billType:pobt,
+    brandId:brand?.id,brandName:brand?.name,
+    date:new Date().toISOString().split('T')[0],
+    branch:document.getElementById('p-branch').value,
+    customer:cust,lineId:document.getElementById('p-line').value,
+    phone:document.getElementById('p-phone').value,
+    items:itemsWithImg,
+    deposit:parseFloat(document.getElementById('p-dep').value)||0,
+    eta:document.getElementById('p-eta').value,
+    note:document.getElementById('p-note').value,
+    imgData:poImg,status:'Pending',statusDate:''};
+  pos.unshift(po);pc++;save();closePOM();
+  toast('✅ บันทึก '+po.poNo+' · '+validItems.length+' รายการ แล้ว!','ok');
+  syncPreorderToDrive(po); // sync to Google Drive
+  renderPOs();
+}
+
+// ─── BILL DETAIL FROM SHEET ───
+let _detailBill=null;
+function openBillDetail(billId){
+  const bill=bills.find(b=>b.id===billId);
+  if(!bill)return;
+  _detailBill=bill;
+  const b=BRANDS.find(x=>x.id===bill.brandId)||BRANDS[0];
+  const act=bill.items.filter(x=>!x.cancelled);
+  const t={sub:bill.sub,ship:bill.ship,disc:bill.disc,dv:bill.dv,discType:bill.discType||'baht',grand:bill.grand};
+  const html=buildReceipt({b,customer:bill.customer,lineId:bill.lineId,team:bill.team,
+    country:bill.country,note:bill.note,billNo:bill.billNo,
+    dateStr:fmtDateEng(new Date(bill.date+'T00:00:00')),act,t,iimgs:bill.iimgs||{}});
+  document.getElementById('bdet-title').textContent=bill.billNo+' · '+bill.customer;
+  document.getElementById('bdet-content').innerHTML=`<div style="background:var(--cream);border-radius:var(--rsm);border:1.5px solid var(--border);max-height:55vh;overflow-y:auto;padding:8px">${html}</div>`;
+  // put in rf for export
+  document.getElementById('rf').innerHTML=html;
+  document.getElementById('bdet-modal').classList.add('open');
+}
+function closeBDet(e){if(!e||e.target===document.getElementById('bdet-modal'))document.getElementById('bdet-modal').classList.remove('open');}
+async function dlBillFromDetail(){
+  const el=document.getElementById('ri');if(!el)return;
+  toast('⏳ กำลังสร้างรูป...','');
+  try{
+    const c=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#fff'});
+    const a=document.createElement('a');
+    a.download='bill_'+(_detailBill?.billNo||'receipt')+'.png';
+    a.href=c.toDataURL('image/png');a.click();
+    toast('✅ บันทึกรูปแล้ว!','ok');
+  }catch(e){toast('❌ ไม่สามารถสร้างรูปได้','err');}
+}
+async function dlBillPDFFromDetail(){
+  const el=document.getElementById('ri');if(!el)return;
+  toast('⏳ กำลังสร้าง PDF...','');
+  try{
+    const c=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#fff'});
+    const img=c.toDataURL('image/png');
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a5'});
+    const pw=pdf.internal.pageSize.getWidth();
+    pdf.addImage(img,'PNG',0,0,pw,pw*(c.height/c.width));
+    pdf.save('bill_'+(_detailBill?.billNo||'receipt')+'.pdf');
+    toast('✅ บันทึก PDF แล้ว!','ok');
+  }catch(e){toast('❌ ไม่สามารถสร้าง PDF ได้','err');}
+}
+const STTH={Pending:'⏳ Pending',Ordered:'🏭 Ordered',Ready:'📦 Ready',Shipped:'🚚 Shipped',Cancelled:'❌ Cancelled'};
+const STCL={Pending:'bdg-p',Ordered:'bdg-o',Ready:'bdg-r',Shipped:'bdg-s',Cancelled:'bdg-c'};
+function filterPO(s,btn){poFilt=s;document.querySelectorAll('.fc').forEach(c=>c.classList.remove('on'));btn.classList.add('on');renderPOs();}
+function renderPOs(){
+  const cnt={Pending:0,Ordered:0,Ready:0,Shipped:0};
+  pos.forEach(p=>{if(cnt[p.status]!==undefined)cnt[p.status]++;});
+  document.getElementById('po-stats').innerHTML=[
+    {k:'Pending',l:'Pending',col:'#c2185b'},{k:'Ordered',l:'Ordered',col:'#1565c0'},
+    {k:'Ready',l:'Ready',col:'#2e7d32'},{k:'Shipped',l:'Shipped',col:'#512da8'},
+  ].map((s,i)=>`<div class="sc" style="cursor:pointer" onclick="filterPO('${s.k}',document.querySelectorAll('.fc')[${i+1}])">
+    <div class="snum" style="color:${s.col}">${cnt[s.k]}</div><div class="slbl">${s.l}</div>
+  </div>`).join('');
+  // supplier summary — handle both old (single code) and new (items array) format
+  const need=pos.filter(p=>p.status==='Pending'||p.status==='Ordered');
+  const cm={};
+  need.forEach(p=>{
+    const itemList=p.items||[{code:p.code,size:p.size,qty:p.qty||1}];
+    itemList.forEach(it=>{
+      if(!it.code)return;
+      if(!cm[it.code])cm[it.code]={code:it.code,total:0,custs:[]};
+      cm[it.code].total+=(it.qty||1);
+      cm[it.code].custs.push(p.customer);
+    });
+  });
+  const sl=Object.values(cm).sort((a,b)=>b.total-a.total);
+  const sw=document.getElementById('sup-wrap');
+  if(sl.length){
+    sw.style.display='';
+    document.getElementById('sup-badge').innerHTML=`<span style="background:var(--lavd);color:#fff;padding:2px 8px;border-radius:20px;font-size:11px">${sl.length} items</span>`;
+    document.getElementById('sup-list').innerHTML=sl.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div><span style="font-weight:700;color:var(--lavt);font-size:14px">${s.code}</span>
+      <span style="font-size:11px;color:var(--text2);margin-left:6px">${[...new Set(s.custs)].slice(0,3).join(', ')}</span></div>
+      <span style="font-size:15px;font-weight:700;color:var(--lavt);background:var(--lav);padding:3px 12px;border-radius:20px">${s.total} pcs</span>
+    </div>`).join('');
+    window._sl=sl;
+  }else{sw.style.display='none';}
+  // PO cards
+  const filt=poFilt==='all'?pos:pos.filter(p=>p.status===poFilt);
+  const el=document.getElementById('po-list');
+  if(!filt.length){el.innerHTML='<div class="empty"><div class="big">📭</div><p>No preorders in this category</p></div>';return;}
+  el.innerHTML=filt.map(p=>{
+    // support both old single-item and new multi-item
+    const itemList=p.items||[{code:p.code,size:p.size,qty:p.qty||1,price:p.price||0}];
+    const itemsHTML=itemList.map(it=>`
+      <div style="margin-top:4px">
+        <span style="font-weight:700;color:var(--bd);font-size:14px">${it.code}</span>
+        ${it.size?`<span style="background:var(--cream);padding:1px 6px;border-radius:4px;font-size:11px;margin-left:4px">${it.size}</span>`:''}
+        <span style="margin-left:6px;font-size:13px;color:var(--text2)">× ${it.qty} pcs · ${(it.qty*(it.price||0)).toLocaleString()} ฿</span>
+      </div>`).join('');
+    return`<div class="poc s${p.status.toLowerCase()}">
+    <div class="poh">
+      <div style="flex:1;min-width:0">
+        <div class="pono">${p.poNo} · ${p.branch||''}
+          <span class="tag ${p.billType==='sep'?'tagb':'tagp'}" style="margin-left:4px">${p.billType==='sep'?'Separate Bill':'Combined'}</span>
+        </div>
+        <div class="poname">${p.customer}</div>
+        ${itemsHTML}
+        ${p.deposit>0?`<div class="podet">💰 Deposit ${p.deposit.toLocaleString()} ฿</div>`:''}
+        ${p.eta?`<div class="podet">📅 ETA: ${fmtDate(p.eta)}</div>`:''}
+        ${p.lineId?`<div class="podet">LINE: ${p.lineId}</div>`:''}
+        ${p.note?`<div class="podet">📝 ${p.note}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <span class="bdg ${STCL[p.status]}">${STTH[p.status]}</span>
+        ${p.imgData?`<img src="${p.imgData}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;border:1px solid #f0e8ec">`:''}
+      </div>
+    </div>
+    <div class="pof">
+      <select class="ssel" onchange="updPOSt(${p.id},this.value)">
+        ${Object.entries(STTH).map(([v,l])=>`<option value="${v}" ${p.status===v?'selected':''}>${l}</option>`).join('')}
+      </select>
+      ${p.phone?`<a class="cbtn" href="tel:${p.phone}">📞</a>`:''}
+      <button class="cbtn" onclick="exportPOInv(${p.id})" title="Export Production Order" style="font-size:14px">📄</button>
+    </div>
+  </div>`;
+  }).join('');
+}
+function updPOSt(id,st){const p=pos.find(x=>x.id===id);if(!p)return;p.status=st;p.statusDate=new Date().toLocaleString('th-TH');save();renderPOs();toast('✅ อัพเดทสถานะ '+p.poNo,'ok');}
+async function exportPOInv(id){
+  const p=pos.find(x=>x.id===id);if(!p)return;
+  const b=BRANDS.find(x=>x.id===p.brandId)||brand||BRANDS[0];
+  const bal=Math.max(0,(p.qty*(p.price||0))-(p.deposit||0));
+  const html=`<div id="pii" style="background:#fff;font-family:'Quicksand','Sarabun',sans-serif;padding:0">
+    <div style="background:${b.cbg};padding:20px;text-align:center;border-bottom:2px solid ${b.cd}40">
+      <div style="font-size:12px;font-weight:700;color:${b.cd};letter-spacing:2px;margin-bottom:4px">ใบคำสั่งผลิต · PRODUCTION ORDER</div>
+      <div style="font-size:20px;font-weight:700;color:${b.ct}">${b.name}</div>
+      <div style="font-size:11px;color:${b.ct};opacity:.7;margin-top:2px">${b.addr}</div>
+    </div>
+    <div style="padding:16px 20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;font-size:12px">
+        <div><span style="color:#bbb;display:block">เลข PO</span><b style="color:${b.cd}">${p.poNo}</b></div>
+        <div><span style="color:#bbb;display:block">วันที่</span><b>${fmtDateEng(new Date(p.date+'T00:00:00'))}</b></div>
+        <div><span style="color:#bbb;display:block">Customer name</span><b>${p.customer}</b></div>
+        <div><span style="color:#bbb;display:block">LINE</span><b>${p.lineId||'-'}</b></div>
+        <div><span style="color:#bbb;display:block">รหัสสินค้า</span><b style="color:${b.cd};font-size:15px">${p.code}</b></div>
+        <div><span style="color:#bbb;display:block">ไซส์/สี</span><b>${p.size||'-'}</b></div>
+        <div><span style="color:#bbb;display:block">จำนวน</span><b style="font-size:18px;color:${b.cd}">${p.qty} ชิ้น</b></div>
+        <div><span style="color:#bbb;display:block">วันที่คาด</span><b>${p.eta?fmtDate(p.eta):'-'}</b></div>
+      </div>
+      ${p.imgData?`<img src="${p.imgData}" style="width:100%;max-height:160px;object-fit:cover;border-radius:12px;border:1px solid #f0e8ec;margin-bottom:12px">`:''}
+      ${p.note?`<div style="background:#f9f5ff;border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid ${b.cd}30"><div style="font-size:11px;color:#bbb;margin-bottom:4px">รายละเอียด / หมายเหตุผลิต</div><div style="font-size:13px">${p.note}</div></div>`:''}
+      <div style="background:${b.cbg};border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:13px;color:${b.ct}">ราคาต่อชิ้น</span>
+        <span style="font-size:14px;font-weight:700;color:${b.cd}">${(p.price||0).toLocaleString()} ฿</span>
+      </div>
+      ${p.deposit>0?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 16px;color:#aaa"><span>มัดจำรับแล้ว</span><span style="color:${b.cd}">-${p.deposit.toLocaleString()} ฿</span></div>`:''}
+      <div style="background:${b.cd};border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;margin-top:8px">
+        <span style="font-size:13px;color:#fff;font-weight:600">ยอดคงเหลือ / Balance</span>
+        <span style="font-size:18px;font-weight:700;color:#fff">${bal.toLocaleString()} ฿</span>
+      </div>
+    </div>
+    <div style="padding:12px 20px 20px;text-align:center;border-top:1px solid #faf0f3">
+      <div style="font-size:11px;color:${b.ct};opacity:.7">${b.footer}</div>
+    </div>
+  </div>`;
+  document.getElementById('pif').innerHTML=html;
+  await new Promise(r=>setTimeout(r,300));
+  toast('⏳ กำลังสร้าง PDF...','');
+  try{
+    const el=document.getElementById('pii');
+    const c=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#fff'});
+    const img=c.toDataURL('image/png');
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a5'});
+    const pw=pdf.internal.pageSize.getWidth();
+    pdf.addImage(img,'PNG',0,0,pw,pw*(c.height/c.width));
+    pdf.save('PO_'+p.poNo+'.pdf');
+    toast('✅ Export ใบสั่งผลิตแล้ว!','ok');
+  }catch(e){toast('❌ ไม่สามารถสร้าง PDF ได้','err');}
+}
+function exportSupCSV(){
+  const list=window._sl||[];if(!list.length){toast('⚠️ ไม่มีรายการ','err');return;}
+  let csv='รหัสสินค้า,จำนวนรวม,รายชื่อลูกค้า\n';
+  list.forEach(s=>{csv+=`"${s.code}",${s.total},"${[...new Set(s.custs)].join(' / ')}"\n`;});
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='supplier_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+  toast('✅ Export แล้ว!','ok');
+}
+
+// ─── SHEET ───
+function renderSheet(){
+  const today=new Date().toISOString().split('T')[0];
+  const tb=bills.filter(b=>b.date===today&&(!brand||b.brandId===brand.id));
+  const rev=tb.reduce((s,b)=>s+(b.grand||0),0);
+  document.getElementById('st-b').textContent=tb.length;
+  document.getElementById('st-r').textContent=rev.toLocaleString()+' ฿';
+  document.getElementById('st-pp').textContent=pos.filter(p=>p.status==='Pending').length;
+  document.getElementById('st-pr').textContent=pos.filter(p=>p.status==='Ready').length;
+  document.getElementById('sheet-sub').textContent=`Today ${tb.length} bills · ${rev.toLocaleString()} ฿`;
+  const show=bills.filter(b=>!brand||b.brandId===brand.id).slice(0,40);
+  const el=document.getElementById('bill-list');
+  if(!show.length){el.innerHTML='<div class="empty"><div class="big">📄</div><p>No bills yet</p></div>';return;}
+  el.innerHTML=show.map(b=>`<div class="bm" style="cursor:pointer" onclick="openBillDetail(${b.id})">
+    <div>
+      <div class="bno2">${b.billNo} · ${b.brandName||''}</div>
+      <div class="bname2">${b.customer}</div>
+      <div class="bsub2">${b.time} · ${b.items.filter(x=>!x.cancelled).length} items ${b.lineId?'· LINE: '+b.lineId:''}</div>
+      ${b.disc>0?`<div style="font-size:11px;color:var(--text2)">Discount: -${b.disc.toLocaleString()} ฿</div>`:''}
+    </div>
+    <div style="text-align:right">
+      <div class="bamt">${(b.grand||0).toLocaleString()} ฿</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px">Tap to view ›</div>
+    </div>
+  </div>`).join('');
+}
+function exportCSV(){
+  const list=bills.filter(b=>!brand||b.brandId===brand.id);
+  if(!list.length){toast('⚠️ ยังไม่มีบิล','err');return;}
+  let csv='เลขบิล,วันที่,เวลา,แบรนด์,ลูกค้า,LINE,ทีม,ประเทศ,รหัส,รายละเอียด,จำนวน,ราคา,รวม,ส่วนลด,ค่าส่ง,ยอดสุทธิ\n';
+  list.forEach(b=>{b.items.filter(x=>!x.cancelled).forEach((it,i)=>{
+    csv+=`"${b.billNo}","${b.date}","${b.time}","${b.brandName||''}","${b.customer}","${b.lineId||''}","${b.team||''}","${b.country||''}","${it.code}","${it.name||''}",${it.qty},${it.price},${it.qty*it.price},${i===0?b.disc:0},${i===0?b.ship:0},${i===0?b.grand:''}\n`;
+  });});
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='bills_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+  toast('✅ Export CSV แล้ว!','ok');
+}
+
+// ─── UTILS ───
+function genBNo(){const d=new Date();const s=String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');const p=brand?brand.id.slice(0,2).toUpperCase():'B';return p+s+'-'+String(bc).padStart(3,'0');}
+function genPNo(){const d=new Date();const s=String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');return'PO'+s+'-'+String(pc).padStart(3,'0');}
+function fmtDate(iso){if(!iso)return'';const[y,m,d]=iso.split('-');const M=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];return`${+d} ${M[+m]} ${+y+543}`;}
+function fmtDateEng(d){const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];const M=['January','February','March','April','May','June','July','August','September','October','November','December'];const ord=n=>n+(n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th');return`${days[d.getDay()]} ${ord(d.getDate())} ${M[d.getMonth()]} ${d.getFullYear()}`;}
+function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function save(){try{localStorage.setItem('lb3_b',JSON.stringify(bills));localStorage.setItem('lb3_p',JSON.stringify(pos));}catch(e){}}
+let _tt;function toast(msg,type){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show'+(type?' '+type:'');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),2800);}
+</script>
+</body>
+</html>
